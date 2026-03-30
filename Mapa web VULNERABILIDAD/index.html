@@ -260,14 +260,14 @@
             return {
                 pane: 'pane_provincia_TdFuego_2',
                 opacity: 1,
-                color: 'rgba(35,35,35,1.0)',
+                color: 'rgba(0,0,0,1.0)',
                 dashArray: '',
                 lineCap: 'butt',
                 lineJoin: 'miter',
-                weight: 1.0, 
+                weight: 3.0, 
                 fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(133,182,111,1.0)',
+                fillOpacity: 0.55,
+                fillColor: 'rgba(0,0,0,1.0)',
                 interactive: false,
             }
         }
@@ -376,7 +376,7 @@
         col1.className="col9";
         col1.id = "mapWindow";
         col1.style.height = "99%";
-        col1.style.width = "80%";
+        col1.style.width = "100%";
         col1.style.display = "inline-block";
         var col2 = document.createElement('div');
         col2.className="col3";
@@ -384,7 +384,7 @@
         col2.style.display = "inline-block";
         mapDiv.parentNode.insertBefore(row, mapDiv);
         document.getElementById("all").appendChild(col1);
-        document.getElementById("all").appendChild(col2);
+        // document.getElementById("all").appendChild(col2); //MENU CON FILTROS
         col1.appendChild(mapDiv)
         var Filters = {"entidad": "int","id_loc": "int","gid": "int","sag": "str","gna": "str","cod_ase": "str","nam": "str","lat_gd": "str","long_gd": "str","fdc": "str","in1": "str","fna": "str","PAÍS": "str"};
         function filterFunc() {
