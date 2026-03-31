@@ -25,6 +25,32 @@
             left: 350px;
             width: calc(100% - 350px); /* Ajusta el ancho para que no desborde */
         }
+        /* Estilos para la leyenda */
+        .legend {
+            background: white;
+            padding: 15px;
+            line-height: 24px;
+            color: #333;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+            font-family: sans-serif;
+            min-width: 160px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            /* Eliminamos min-height fijo */
+            margin-bottom: 4px; /* Un pequeño margen base */
+        }
+
+        .legend-icon-container {
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
         </style>
         <title></title>
     </head>
@@ -61,6 +87,7 @@
                 <canvas id="vulnerabilidadChart" style="max-width: 100%; display: none;"></canvas>
             </div>
         </div>
+        <div id="legend-container" class="legend" style="display: none;"></div>
 
         <div id="map"></div>
         <script src="js/qgis2web_expressions.js"></script>
@@ -138,6 +165,31 @@
             return RADIO_MIN + (valor * (RADIO_MAX - RADIO_MIN));
         }
 
+        //CATEGORIAS
+        const RANGOS_CATEGORIAS = [0, 0, 0.05, 0.10, 0.20, 0.45, 0.70, 0.90];
+
+        const COLORES_CATEGORIAS = [
+            '#ffffff', // 0% (Blanco)
+            '#fed976', // 0% - 5% (Amarillo claro)
+            '#feb24c', // 5% - 10%
+            '#fd8d3c', // 10% - 20%
+            '#fc4e2a', // 20% - 45%
+            '#e31a1c', // 45% - 70%
+            '#bd0026', // 70% - 90%
+            '#800026'  // 90% +
+        ];
+                function getColor(v) {
+            if (!v || v <= 0) return '#ffffff'; 
+
+            // Recorremos los rangos desde el más alto al más bajo
+            for (let i = RANGOS_CATEGORIAS.length - 1; i >= 0; i--) {
+                if (v > RANGOS_CATEGORIAS[i]) {
+                    return COLORES_CATEGORIAS[i];
+                }
+            }
+            return COLORES_CATEGORIAS[0];
+        }
+
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
         }).setView([-53.909, -66.863], 8);
@@ -212,7 +264,7 @@
         function setBounds() {
         }
 
-
+        
         // 1. Definimos las URLs de los servidores en orden de prioridad
         const urlArgenmapGris = 'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG:3857@png/{z}/{x}/{y}.png';
         const urlArgenmapNormal = 'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG:3857@png/{z}/{x}/{y}.png';
@@ -469,17 +521,16 @@
                     }
                 });
             }
-            const estilo_default = valor <= 0;
             return {
                 pane: 'pane_localidades_TdFuego_3',
-                radius: estilo_default ? 12.0 : calcularRadio(valor),
-                stroke: estilo_default,
+                radius: (valor <= 0) ? 12.0 : calcularRadio(valor),
+                stroke: (valor === 0 || isNaN(valor)) ? true : false,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
                 weight: 1,
                 fill: true,
                 fillOpacity: 0.9,
-                fillColor: estilo_default ? COLOR_DEFECTO : COLOR_ACTIVO,
+                fillColor: getColor(valor),
                 interactive: true,
             }
         }
@@ -522,7 +573,7 @@
         //     //expandAll: 'Expand all',
         //     collapsed: true,
         // });
-        lay.addTo(map);
+        // lay.addTo(map);
         setBounds();
         var mapDiv = document.getElementById('map');
         var row = document.createElement('div');
@@ -1077,6 +1128,37 @@
             };
             div_PAS.appendChild(reset_PAS);
 
+            // // Crear el objeto de la leyenda
+            // var legend = L.control({position: 'bottomright'}); // Cambiado a bottomright para que no tape los selectores
+
+            // legend.onAdd = function (map) {
+            //     var div = L.DomUtil.create('div', 'info legend'),
+            //         grades = [0, 0.05, 0.10, 0.20, 0.45, 0.70, 0.90],
+            //         labels = ['<strong>Referencias (%)</strong><br>'];
+
+            //     // Generar las etiquetas de la leyenda
+            //     for (var i = 0; i < grades.length; i++) {
+            //         var color = getColor(grades[i] + 0.01);
+                    
+            //         // CORRECCIÓN: Construcción directa del string en lugar de usar push de forma errónea
+            //         div.innerHTML += 
+            //             '<i style="background:' + color + '; width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; border: 1px solid #999;"></i> ' +
+            //             (grades[i] * 100) + (grades[i + 1] ? '&ndash;' + (grades[i + 1] * 100) + '%<br>' : '+ %<br>');
+            //     }
+                
+            //     // Encabezado y pie de la leyenda
+            //     div.innerHTML = labels[0] + div.innerHTML + 
+            //         '<hr style="margin: 5px 0;">' +
+            //         '<div style="display: flex; align-items: center;">' +
+            //         '<i style="border: 1px solid #999; border-radius: 50%; width: 12px; height: 12px; display: inline-block; margin-right: 8px;"></i>' + 
+            //         '<span>Tamaño ∝ % población</span>' +
+            //         '</div>';
+
+            //     return div;
+            // };
+
+            // legend.addTo(map);
+
             //setupIndicadorSelector();
         </script>
         <script>
@@ -1193,6 +1275,59 @@
                        actualizarExtract(codGrupo, codVar, dataFinal); 
                     }
                 });
+
+
+
+                const legendDiv = document.getElementById('legend-container');
+
+                // Función para actualizar el contenido de la leyenda
+                function actualizarLeyenda() {
+                    let html = '<strong>Referencias (%)</strong><br><br>';
+                    const SEPARACION_FIJA = 10; // Los 5px de separación que solicitaste
+
+                    for (let i = 0; i < RANGOS_CATEGORIAS.length; i++) {
+                        let color = COLORES_CATEGORIAS[i];
+                        let radioVisual = calcularRadio(RANGOS_CATEGORIAS[i]); 
+                        
+                        // El alto total de la fila será el tamaño del círculo + la separación fija
+                        let altoFila = radioVisual + SEPARACION_FIJA;
+
+                        let textoRango;
+                        if (i === 0) {
+                            textoRango = "Sin datos / 0%";
+                        } else if (i === 1) {
+                            textoRango = "0 &ndash; 5%";
+                        } else {
+                            const actual = RANGOS_CATEGORIAS[i] * 100;
+                            const siguiente = RANGOS_CATEGORIAS[i + 1] ? RANGOS_CATEGORIAS[i + 1] * 100 : null;
+                            textoRango = siguiente ? `${actual} &ndash; ${siguiente}%` : `${actual}+ %`;
+                        }
+
+                        html += `
+                            <div class="legend-item" style="height: ${altoFila}px; margin-bottom: 2px;">
+                                <div class="legend-icon-container" style="width: 50px; height: ${altoFila}px; display: flex; justify-content: center; align-items: center; margin-right: 15px;">
+                                    <i style="background: ${color}; width: ${radioVisual}px; height: ${radioVisual}px; flex-shrink: 0; border-radius: 50%; border: 1px solid #999; display: inline-block;"></i>
+                                </div>
+                                <span style="white-space: nowrap; font-size: 12px; line-height: ${altoFila}px;">${textoRango}</span>
+                            </div>`;
+                    }
+
+                    html += '<hr style="margin: 10px 0;">';
+                    html += '<div style="font-size: 11px; color: #666; text-align: center;">Tamaño proporcional a la población</div>';
+
+                    legendDiv.innerHTML = html;
+                    legendDiv.style.display = 'block';
+                }
+
+                // Creamos un control de Leaflet que "envuelva" nuestro div existente
+                var legendControl = L.control({position: 'topright'});
+                legendControl.onAdd = function() {
+                    return legendDiv;
+                };
+                legendControl.addTo(map);
+
+                // Llamamos a la función para que se llene al cargar
+                actualizarLeyenda();
             });
             </script> 
     </body>
