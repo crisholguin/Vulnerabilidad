@@ -20,12 +20,46 @@
             padding: 0;
             margin: 0;
         }
+        #map {
+            position: absolute;
+            left: 350px;
+            width: calc(100% - 350px); /* Ajusta el ancho para que no desborde */
+        }
         </style>
         <title></title>
     </head>
     <body>
-        <div id="map">
+        <div id="side-panel" style="position: absolute; top: 0; left: 0; width: 350px; height: 100%; z-index: 2000; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.2); display: flex; flex-direction: column; font-family: sans-serif;">
+            
+            <div style="padding: 20px; background: #2c3e50; color: white;">
+                <h2 style="margin: 0; font-size: 18px;">Indicadores de Vulnerabilidad</h2>
+                <h3 style="margin-top: 10px; font-size: 14px;color: #8c9699;">Localidades de Tierra del Fuego</h3>
+            </div>
+            
+            <div id="selector-container" style="padding: 20px; border-bottom: 1px solid #eee; background: #f8f9fa;">
+                <label for="indicadorSelect"><b>1. Variable:</b></label><br>
+                <select id="indicadorSelect" style="width: 100%; margin-top: 5px; margin-bottom: 15px; padding: 5px;">
+                    <option value="">Elija una variable...</option>
+                </select>
+                
+                <label for="variableSelect"><b>2. Indicador:</b></label><br>
+                <select id="variableSelect" style="width: 100%; margin-top: 5px; padding: 5px;" disabled>
+                    <option value="">Seleccione variable primero...</option>
+                </select>
+            </div>
+
+            <div style="padding: 20px; flex-grow: 1; overflow-y: auto;">
+                <div id="report-data">
+                    <p style="color: #7f8c8d; font-style: italic;">Seleccione un indicador y una variable para visualizar los datos en el mapa.</p>
+                </div>
+            </div>
+            
+            <div id="chart-container" style="padding: 20px; background: #f4f4f4; border-top: 1px solid #ddd; min-height: 200px;">
+                <p style="font-size: 12px; color: #95a5a6; text-align: center;">Haga clic en una localidad del mapa para ver sus estadísticas detalladas.</p>
+            </div>
         </div>
+
+        <div id="map"></div>
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
@@ -40,29 +74,67 @@
         <script src="js/tailDT.js"></script>
 <script src="js/nouislider.min.js"></script>
 <script src="js/wNumb.js"></script>
+
+        <!-- Datos de indicadores -->
+        <script src="data/indicadores.js"></script>
+        <script src="data/datos_localidad.js"></script>
+        <script src="data/localidades_TdFuego_3.js"></script>
+
+        <!-- Datos GeoJSON -->
         <script src="data/sudamerica_1.js"></script>
         <script src="data/provincia_TdFuego_2.js"></script>
         <script src="data/localidades_TdFuego_3.js"></script>
+
         <script>
         var highlightLayer;
         function highlightFeature(e) {
             highlightLayer = e.target;
-
-            if (e.target.feature.geometry.type === 'LineString' || e.target.feature.geometry.type === 'MultiLineString') {
-              highlightLayer.setStyle({
-                color: '#ffff00',
-              });
-            } else {
-              highlightLayer.setStyle({
-                fillColor: '#ffff00',
-                fillOpacity: 1
-              });
-            }
             highlightLayer.openPopup();
         }
+
+        const mapeoLocalidades = {
+            1: "rio_gde",
+            2: "tolhuin",
+            3: "ushuaia"
+        };
+
+        // 2. Función de Debug (Separada para limpieza)
+        function actualizarExtract(codGrupo, codVar, dataFinal) {
+            const reportContent = document.getElementById('report-data');
+            const metaGrupo = indicadores_ref.find(g => g.cod_grupo === codGrupo);
+            const labelVar = metaGrupo.variables[codVar].label;
+
+            if (!reportContent) return;
+
+            reportContent.innerHTML = `
+                <div style="background: #e8f4fd; padding: 10px; border-radius: 4px; border-left: 4px solid #3498db; margin-bottom: 15px;">
+                    <p style="margin: 0; font-size: 14px;"><b>${metaGrupo.grupo_nom}</b></p>
+                    <p style="margin: 2px 0 0 0; font-size: 13px; color: #2c3e50;">[Aqui colocar descripción de variable]</p>
+                </div>
+                <p style="margin: 0 0 10px 0; font-size: 13px; color: #000000;">Valores encontrados para indicador</p>
+                <p style="margin: 0; font-size: 14px; color: #000000;"><b>${labelVar}:</b></p>
+                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                    <tr style="border-bottom: 1px solid #eee;"><td style="padding: 5px 0;">Río Grande:</td><td style="text-align: right;"><b>${(dataFinal.rio_gde * 100).toFixed(2)}%</b></td></tr>
+                    <tr style="border-bottom: 1px solid #eee;"><td style="padding: 5px 0;">Tolhuin:</td><td style="text-align: right;"><b>${(dataFinal.tolhuin * 100).toFixed(2)}%</b></td></tr>
+                    <tr style="border-bottom: 1px solid #eee;"><td style="padding: 5px 0;">Ushuaia:</td><td style="text-align: right;"><b>${(dataFinal.ushuaia * 100).toFixed(2)}%</b></td></tr>
+                </table>
+            `;
+        }
+
+
+
+        //Tamaño de los puntos basado en el valor del indicador
+        const RADIO_MIN = 15;  // Tamaño para valor 0
+        const RADIO_MAX = 50; // Tamaño para valor 1
+        const COLOR_DEFECTO = '#b7484b'; // Color inicial
+        function calcularRadio(valor) {
+            // Interpolación: radio = min + (valor * (max - min))
+            return RADIO_MIN + (valor * (RADIO_MAX - RADIO_MIN));
+        }
+
         var map = L.map('map', {
             zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[-56.88256126489359,-71.65844672379494],[-52.00022891010162,-61.332337897090646]]);
+        }).setView([-53.909, -66.863], 8);
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -286,51 +358,82 @@
         bounds_group.addLayer(layer_provincia_TdFuego_2);
         map.addLayer(layer_provincia_TdFuego_2);
         function pop_localidades_TdFuego_3(feature, layer) {
+            // 1. Vinculamos el evento CLICK directamente a la capa (layer) que se está procesando
+            layer.on('click', function(e) {
+                const props = feature.properties;
+                const idLoc = Math.round(props.id_loc);
+                const nombreLoc = props.fna;
+                const nombreClave = mapeoLocalidades[idLoc];
+
+                // Obtenemos los códigos seleccionados actualmente en los selects
+                const codGrupo = document.getElementById('indicadorSelect').value;
+                const codVar = document.getElementById('variableSelect').value;
+
+                let valorLocalidad = "N/A";
+                if (codGrupo && codVar) {
+                    valorLocalidad = (datos_localidad[codGrupo][codVar][nombreClave] * 100).toFixed(2) + "%";
+                }
+
+                // Actualizar el panel lateral
+                const chartContainer = document.getElementById('chart-container');
+                if (chartContainer) {
+                    chartContainer.innerHTML = `
+                        <h4 style="margin-top:0;">Estadísticas: ${nombreLoc}</h4>
+                        <div id="canvas-placeholder" style="width:100%; height:350px; background:#eee; display:flex; align-items:center; justify-content:center; border: 1px solid #ccc; border-radius: 4px;">
+                            <span style="color: #555; font-size: 11px;">[Aquí se cargará el gráfico de ${nombreLoc}]</span>
+                        </div>
+                    `;
+                    console.log("Clic detectado en:", nombreLoc, "(ID:", idLoc, ")");
+                }
+            });
+
+            // 2. Mantener la lógica del Mouseover (Tooltip con nombre)
             layer.on({
                 mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
                     if (typeof layer.closePopup == 'function') {
                         layer.closePopup();
-                    } else {
-                        layer.eachLayer(function(feature){
-                            feature.closePopup()
-                        });
                     }
                 },
                 mouseover: highlightFeature,
             });
+
+            // Contenido del popup/tooltip
             var popupContent = '<table>\
                     <tr>\
-                        <td colspan="2">' + (feature.properties['fna'] !== null ? autolinker.link(String(feature.properties['fna']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                        <td colspan="2">' + (feature.properties['fna'] !== null ? autolinker.link(String(feature.properties['fna']).toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
+            layer.bindPopup(content, { maxHeight: 400, closeButton: false });
         }
 
-        function style_localidades_TdFuego_3_0() {
+        // 4. Función de Estilo (Corregida para Leaflet)
+        function style_localidades_TdFuego_3_0(feature) {
+            let valor = 0;
+            if (typeof layer_localidades_TdFuego_3 !== 'undefined') {
+                layer_localidades_TdFuego_3.eachLayer(function(l) {
+                    if (l.feature.properties.id_loc === feature.properties.id_loc) {
+                        valor = l.options.valorActual || 0;
+                    }
+                });
+            }
+
             return {
                 pane: 'pane_localidades_TdFuego_3',
-                radius: 4.0,
+                radius: calcularRadio(valor),
+                stroke: false,
                 opacity: 1,
                 color: 'rgba(35,35,35,1.0)',
-                dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
                 weight: 1,
                 fill: true,
-                fillOpacity: 1,
-                fillColor: 'rgba(183,72,75,1.0)',
+                fillOpacity: 0.8,
+                fillColor: COLOR_DEFECTO,
                 interactive: true,
             }
         }
+
+
+
         map.createPane('pane_localidades_TdFuego_3');
         map.getPane('pane_localidades_TdFuego_3').style.zIndex = 403;
         map.getPane('pane_localidades_TdFuego_3').style['mix-blend-mode'] = 'normal';
@@ -349,6 +452,25 @@
                 return L.circleMarker(latlng, style_localidades_TdFuego_3_0(feature));
             },
         });
+
+        // Función para manejar el clic en los puntos
+        layer_localidades_TdFuego_3.on('click', function(e) {
+            const props = e.layer.feature.properties;
+            const idLoc = Math.round(props.id_loc);
+            const nombreLoc = props.fna;
+
+            // Actualizar el título del panel de gráficos
+            document.getElementById('chart-container').innerHTML = `
+                <h4 style="margin-top:0;">Estadísticas: ${nombreLoc}</h4>
+                <div id="canvas-placeholder" style="width:100%; height:150px; background:#eee; display:flex; align-items:center; justify-content:center;">
+                    [Aquí se cargará el gráfico de loc_${idLoc}]
+                </div>
+            `;
+            
+            // Aquí es donde luego integraremos Chart.js o similar
+            console.log("Localidad seleccionada para gráficos:", idLoc);
+        });
+
         bounds_group.addLayer(layer_localidades_TdFuego_3);
         map.addLayer(layer_localidades_TdFuego_3);
         var overlaysTree = [
@@ -356,15 +478,15 @@
             {label: '<img src="legend/provincia_TdFuego_2.png" /> provincia_TdFuego', layer: layer_provincia_TdFuego_2},
             {label: '<img src="legend/sudamerica_1.png" /> sudamerica', layer: layer_sudamerica_1},
             {label: "OSM Standard", layer: layer_OSMStandard_0, radioGroup: 'bm' },]
-        var lay = L.control.layers.tree(null, overlaysTree,{
-            //namedToggle: true,
-            //selectorBack: false,
-            //closedSymbol: '&#8862; &#x1f5c0;',
-            //openedSymbol: '&#8863; &#x1f5c1;',
-            //collapseAll: 'Collapse all',
-            //expandAll: 'Expand all',
-            collapsed: true,
-        });
+        // var lay = L.control.layers.tree(null, overlaysTree,{
+        //     //namedToggle: true,
+        //     //selectorBack: false,
+        //     //closedSymbol: '&#8862; &#x1f5c0;',
+        //     //openedSymbol: '&#8863; &#x1f5c1;',
+        //     //collapseAll: 'Collapse all',
+        //     //expandAll: 'Expand all',
+        //     collapsed: true,
+        // });
         lay.addTo(map);
         setBounds();
         var mapDiv = document.getElementById('map');
@@ -919,6 +1041,79 @@
                 filterFunc();
             };
             div_PAS.appendChild(reset_PAS);
-        </script>        
+
+            //setupIndicadorSelector();
+        </script>
+        <script>
+            // Aseguramos que el código corra solo cuando el HTML esté cargado
+            document.addEventListener('DOMContentLoaded', function() {
+                
+                // 1. Verificar que los datos existan
+                if (typeof indicadores_ref === 'undefined' || typeof datos_localidad === 'undefined') {
+                    console.error("Los archivos de datos no se cargaron correctamente.");
+                    return;
+                }
+
+                const selectInd = document.getElementById('indicadorSelect');
+                const selectVar = document.getElementById('variableSelect');
+
+                // 2. Llenar el primer selector
+                selectInd.innerHTML = '<option value="">Elija un indicador...</option>';
+                indicadores_ref.forEach(grupo => {
+                    let opt = document.createElement('option');
+                    opt.value = grupo.cod_grupo;
+                    opt.innerHTML = `${grupo.grupo_nom}`;
+                    selectInd.appendChild(opt);
+                });
+
+                // 3. Evento Indicador (Padre)
+                selectInd.addEventListener('change', function () {
+                    const codGrupo = this.value;
+                    selectVar.innerHTML = '<option value="">Seleccione una variable...</option>';
+                    
+                    // En lugar de ocultar, reseteamos el texto informativo
+                    document.getElementById('report-data').innerHTML = '<p style="color: #7f8c8d; font-style: italic;">Ahora seleccione un indicador específico.</p>';
+
+                    if (!codGrupo) {
+                        selectVar.disabled = true;
+                        document.getElementById('report-data').innerHTML = '<p style="color: #7f8c8d;">Seleccione una variable para analizar.</p>';
+                        return;
+                    }
+
+                    const grupoData = indicadores_ref.find(g => g.cod_grupo === codGrupo);
+                    Object.keys(grupoData.variables).forEach(key => {
+                        let opt = document.createElement('option');
+                        opt.value = key;
+                        opt.innerHTML = grupoData.variables[key].label;
+                        selectVar.appendChild(opt);
+                    });
+                    selectVar.disabled = false;
+                });
+
+                // 4. Evento Variable (Hijo)
+                selectVar.addEventListener('change', function () {
+                    const codGrupo = selectInd.value;
+                    const codVar = this.value;
+                    if (!codGrupo || !codVar) return;
+
+                    const dataFinal = datos_localidad[codGrupo][codVar];
+                    
+                    if (typeof layer_localidades_TdFuego_3 !== 'undefined') {
+                        layer_localidades_TdFuego_3.eachLayer(function(layer) {
+                            // CORRECCIÓN: Definir idLoc aquí adentro
+                            const idLoc = Math.round(layer.feature.properties.id_loc);
+                            const nombreClave = mapeoLocalidades[idLoc];
+                            
+                            layer.options.valorActual = dataFinal[nombreClave] || 0;
+                        });
+
+                        layer_localidades_TdFuego_3.setStyle(style_localidades_TdFuego_3_0);
+                        
+                        // CORRECCIÓN: Asegúrate de que el nombre de la función coincida (actualizarDebug)
+                        actualizarExtract(codGrupo, codVar, dataFinal); 
+                    }
+                });
+            });
+            </script> 
     </body>
 </html>
