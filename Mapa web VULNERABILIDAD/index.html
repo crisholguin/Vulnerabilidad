@@ -211,19 +211,47 @@
         var bounds_group = new L.featureGroup([]);
         function setBounds() {
         }
-        map.createPane('pane_Argenmap_0');
-        map.getPane('pane_Argenmap_0').style.zIndex = 0; 
 
-        var layer_Argenmap_0 = L.tileLayer('https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG:3857@png/{z}/{x}/{y}.png', {
-            pane: 'pane_Argenmap_0',
+
+        // 1. Definimos las URLs de los servidores en orden de prioridad
+        const urlArgenmapGris = 'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG:3857@png/{z}/{x}/{y}.png';
+        const urlArgenmapNormal = 'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG:3857@png/{z}/{x}/{y}.png';
+        const urlOSM = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+        // 2. Creamos el panel para el mapa base
+        map.createPane('pane_BaseMap_0');
+        map.getPane('pane_BaseMap_0').style.zIndex = 0;
+
+        // 3. Inicializamos la capa con la versión GRIS por defecto
+        var layer_BaseMap_0 = L.tileLayer(urlArgenmapGris, {
+            pane: 'pane_BaseMap_0',
             opacity: 1.0,
-            attribution: '<a href="https://www.ign.gob.ar/AreaServicios/Argenmap/Introduccion" target="_blank">IGN Argentina (Argenmap Gris)</a>',
+            attribution: 'IGN Argentina / OSM',
             minZoom: 1,
             maxZoom: 20,
-            tms: true, // Requerido para el formato de teselas del IGN
+            tms: true 
         });
-        layer_Argenmap_0;
-        map.addLayer(layer_Argenmap_0);
+
+        // 4. Lógica de Fallback (Respaldo)
+        let intentos = 0;
+
+        layer_BaseMap_0.on('tileerror', function(error) {
+            // Si falla el primer intento (Gris), probamos con Argenmap Normal
+            if (intentos === 0) {
+                console.warn("Fallo Argenmap Gris, intentando Argenmap Normal...");
+                this.setUrl(urlArgenmapNormal);
+                intentos++;
+            } 
+            // Si falla el segundo (Normal), pasamos a OSM
+            else if (intentos === 1) {
+                console.warn("Fallo Argenmap Normal, pasando a OSM...");
+                this.options.tms = false; // OSM no usa esquema TMS
+                this.setUrl(urlOSM);
+                intentos++;
+            }
+        });
+
+        map.addLayer(layer_BaseMap_0);
 
         function pop_sudamerica_1(feature, layer) {
             layer.on({
@@ -483,7 +511,7 @@
             {label: '<img src="legend/localidades_TdFuego_3.png" /> localidades_TdFuego', layer: layer_localidades_TdFuego_3},
             {label: '<img src="legend/provincia_TdFuego_2.png" /> provincia_TdFuego', layer: layer_provincia_TdFuego_2},
             {label: '<img src="legend/sudamerica_1.png" /> sudamerica', layer: layer_sudamerica_1},
-            {label: "Argenmap", layer: layer_Argenmap_0, radioGroup: 'bm' },]
+            {label: "Mapa Base", layer: layer_BaseMap_0, radioGroup: 'bm' },]
             //Control de capas OPENLAYERS
             // var lay = L.control.layers.tree(null, overlaysTree,{
         //     //namedToggle: true,
