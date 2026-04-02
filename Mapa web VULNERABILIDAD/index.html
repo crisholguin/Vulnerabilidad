@@ -80,11 +80,15 @@
                 </div>
             </div>
             
-            <div id="chart-container" style="padding: 20px; background: #f4f4f4; border-top: 1px solid #ddd; min-height: 300px;">
-                <div id="chart-header">
-                    <p style="font-size: 12px; color: #95a5a6; text-align: center;">Haga clic en una localidad para ver el gráfico.</p>
+            <div id="chart-container" style="padding: 15px; background: #f4f4f4; border-top: 1px solid #ddd; height: 350px; display: flex; flex-direction: column;">
+                <div id="chart-header" style="flex: 0 1 auto;">
+                    <p style="font-size: 12px; color: #95a5a6; text-align: center; margin: 10px 0;">
+                        Haga clic en una localidad para ver el gráfico.
+                    </p>
                 </div>
-                <canvas id="vulnerabilidadChart" style="max-width: 100%; display: none;"></canvas>
+                <div style="flex: 1 1 auto; position: relative; min-height: 0;">
+                    <canvas id="vulnerabilidadChart"></canvas>
+                </div>
             </div>
         </div>
         <div id="legend-container" class="legend" style="display: none;"></div>
@@ -135,13 +139,14 @@
             const reportContent = document.getElementById('report-data');
             const metaGrupo = indicadores_ref.find(g => g.cod_grupo === codGrupo);
             const labelVar = metaGrupo.variables[codVar].label;
+            const descVar = metaGrupo.variables[codVar].desc;
 
             if (!reportContent) return;
 
             reportContent.innerHTML = `
                 <div style="background: #e8f4fd; padding: 10px; border-radius: 4px; border-left: 4px solid #3498db; margin-bottom: 15px;">
                     <p style="margin: 0; font-size: 14px;"><b>${metaGrupo.grupo_nom}</b></p>
-                    <p style="margin: 2px 0 0 0; font-size: 13px; color: #2c3e50;">[Aqui colocar descripción de variable]</p>
+                    <p style="margin: 2px 0 0 0; font-size: 13px; color: #2c3e50;">${descVar}</p>
                 </div>
                 <p style="margin: 0 0 10px 0; font-size: 13px; color: #6f7c7d; font-style: italic;">Valores encontrados para indicador:</p>
                 <p style="margin: 0; font-size: 14px; color: #000000;"><b>${labelVar}</b></p>
@@ -483,7 +488,7 @@
                     const codGrupo = document.getElementById('indicadorSelect').value;
                     
                     // Mostramos el canvas y ocultamos el mensaje de ayuda inicial
-                    document.getElementById('chart-header').style.display = 'none';
+                    document.getElementById('chart-header').style.display = 'block';
                     document.getElementById('vulnerabilidadChart').style.display = 'block';
 
                     if (codGrupo) {
@@ -492,7 +497,11 @@
                         // Si es binario, generamos la torta
                         if (meta.tipo === "Binario") {
                             generarGraficoBinario(nombreLoc, codGrupo, nombreClave);
-                        } else {
+                        } 
+                        else if (meta.tipo === "Categorizado") {
+                            generarGraficoCategorizado(nombreLoc, codGrupo, nombreClave);
+                        }
+                        else {
                             // Manejo para otros tipos que aún no tienen lógica de gráfico
                             if (miGrafico) miGrafico.destroy();
                             document.getElementById('vulnerabilidadChart').style.display = 'none';
@@ -1128,40 +1137,9 @@
             };
             div_PAS.appendChild(reset_PAS);
 
-            // // Crear el objeto de la leyenda
-            // var legend = L.control({position: 'bottomright'}); // Cambiado a bottomright para que no tape los selectores
-
-            // legend.onAdd = function (map) {
-            //     var div = L.DomUtil.create('div', 'info legend'),
-            //         grades = [0, 0.05, 0.10, 0.20, 0.45, 0.70, 0.90],
-            //         labels = ['<strong>Referencias (%)</strong><br>'];
-
-            //     // Generar las etiquetas de la leyenda
-            //     for (var i = 0; i < grades.length; i++) {
-            //         var color = getColor(grades[i] + 0.01);
-                    
-            //         // CORRECCIÓN: Construcción directa del string en lugar de usar push de forma errónea
-            //         div.innerHTML += 
-            //             '<i style="background:' + color + '; width: 18px; height: 18px; float: left; margin-right: 8px; opacity: 0.9; border: 1px solid #999;"></i> ' +
-            //             (grades[i] * 100) + (grades[i + 1] ? '&ndash;' + (grades[i + 1] * 100) + '%<br>' : '+ %<br>');
-            //     }
-                
-            //     // Encabezado y pie de la leyenda
-            //     div.innerHTML = labels[0] + div.innerHTML + 
-            //         '<hr style="margin: 5px 0;">' +
-            //         '<div style="display: flex; align-items: center;">' +
-            //         '<i style="border: 1px solid #999; border-radius: 50%; width: 12px; height: 12px; display: inline-block; margin-right: 8px;"></i>' + 
-            //         '<span>Tamaño ∝ % población</span>' +
-            //         '</div>';
-
-            //     return div;
-            // };
-
-            // legend.addTo(map);
-
-            //setupIndicadorSelector();
         </script>
         <script>
+            // CONSTRUCCION DE GRAFICOS
             let miGrafico = null;
             function generarGraficoBinario(nombreLoc, codGrupo, nombreClave) {
                 const ctx = document.getElementById('vulnerabilidadChart').getContext('2d');
@@ -1170,7 +1148,7 @@
 
                 // 1. Obtener metadatos y valores
                 const meta = indicadores_ref.find(g => g.cod_grupo === codGrupo);
-                if (meta.tipo !== "Binario") return; // Solo procesa binarios en esta fase
+                if (meta.tipo !== "Binario") return;
 
                 const val_1 = 100*datos_localidad[codGrupo]["1"][nombreClave];
                 const val_0 = 100*datos_localidad[codGrupo]["0"][nombreClave];
@@ -1199,6 +1177,70 @@
                         responsive: true,
                         plugins: {
                             legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } }
+                        }
+                    }
+                });
+            }
+            
+            function generarGraficoCategorizado(nombreLoc, codGrupo, nombreClave) {
+                const ctx = document.getElementById('vulnerabilidadChart').getContext('2d');
+                const chartHeader = document.getElementById('chart-header');
+                const canvasElement = document.getElementById('vulnerabilidadChart');
+
+                // 1. Obtener metadatos
+                const meta = indicadores_ref.find(g => g.cod_grupo === codGrupo);
+                
+                // 2. Preparar etiquetas y datos
+                const labels = [];
+                const datosValores = [];
+                
+                Object.keys(meta.variables).forEach(key => {
+                    labels.push(meta.variables[key].label);
+                    // Convertimos la proporción a porcentaje (0-100)
+                    const valorPerc = (datos_localidad[codGrupo][key][nombreClave] * 100).toFixed(2);
+                    datosValores.push(valorPerc);
+                });
+
+                // 3. UI y Limpieza
+                chartHeader.innerHTML = `<h4 style="margin:0 0 10px 0;">${nombreLoc}: ${meta.grupo_nom}</h4>`;
+                canvasElement.style.display = 'block';
+
+                if (miGrafico) {
+                    miGrafico.destroy();
+                }
+
+                // 4. Crear Gráfico de Barras Verticales
+                miGrafico = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Porcentaje de población',
+                            data: datosValores,
+                            backgroundColor: '#3498db',
+                            borderColor: '#2980b9',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100, // Forzamos el eje del 0 al 100%
+                                ticks: {
+                                    callback: function(value) { return value + "%"; }
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false }, // Ocultamos leyenda ya que solo hay una serie
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) { return context.raw + "%"; }
+                                }
+                            }
                         }
                     }
                 });
@@ -1294,7 +1336,7 @@
 
                         let textoRango;
                         if (i === 0) {
-                            textoRango = "Sin datos / 0%";
+                            textoRango = "Sin datos";
                         } else if (i === 1) {
                             textoRango = "0 &ndash; 5%";
                         } else {
@@ -1306,7 +1348,7 @@
                         html += `
                             <div class="legend-item" style="height: ${altoFila}px; margin-bottom: 2px;">
                                 <div class="legend-icon-container" style="width: 50px; height: ${altoFila}px; display: flex; justify-content: center; align-items: center; margin-right: 15px;">
-                                    <i style="background: ${color}; width: ${radioVisual}px; height: ${radioVisual}px; flex-shrink: 0; border-radius: 50%; border: 1px solid #999; display: inline-block;"></i>
+                                    <i style="background: ${color}; alpha: 0.5; width: ${radioVisual}px; height: ${radioVisual}px; flex-shrink: 0; border-radius: 50%; border: 1px solid #999; display: inline-block;"></i>
                                 </div>
                                 <span style="white-space: nowrap; font-size: 12px; line-height: ${altoFila}px;">${textoRango}</span>
                             </div>`;
