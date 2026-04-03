@@ -11,7 +11,7 @@
         <link rel="stylesheet" href="css/qgis2web.css">
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/filter.css">
-<link rel="stylesheet" href="css/nouislider.min.css">
+        <link rel="stylesheet" href="css/nouislider.min.css">
         <link rel="stylesheet" href="css/leaflet.photon.css">
         <style>
         html, body, #map {
@@ -57,7 +57,7 @@
     <body>
         <div id="side-panel" style="position: absolute; top: 0; left: 0; width: 350px; height: 100%; z-index: 2000; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.2); display: flex; flex-direction: column; font-family: sans-serif;">
             
-            <div style="padding: 20px; background: #2c3e50; color: white;">
+            <div style="padding: 20px 15px 5px 15px; background: #2c3e50; color: white;">
                 <h2 style="margin: 0; font-size: 18px;">Indicadores de Vulnerabilidad</h2>
                 <h3 style="margin-top: 10px; font-size: 14px;color: #8c9699;">Localidades de Tierra del Fuego</h3>
             </div>
@@ -68,13 +68,19 @@
                     <option value="">Elija una variable...</option>
                 </select>
                 
+                <div id="info-variable-container" style="padding: 0 15px 15px 15px; display: none;">
+                    <div id="info-variable-card">
+                        <p id="info-desc" style="margin: 0; font-size: 13px; color: #5d6d7e; line-height: 1.4;"></p>
+                    </div>
+                </div>
+
                 <label for="variableSelect"><b>2. Indicador:</b></label><br>
                 <select id="variableSelect" style="width: 100%; margin-top: 5px; padding: 5px;" disabled>
                     <option value="">Seleccione variable primero...</option>
                 </select>
             </div>
 
-            <div style="padding: 20px; flex-grow: 1; overflow-y: auto;">
+            <div style="padding: 10px 20px 10px 20px; flex-grow: 1; overflow-y: auto;">
                 <div id="report-data">
                     <p style="color: #7f8c8d; font-style: italic;">Seleccione un indicador y una variable para visualizar los datos en el mapa.</p>
                 </div>
@@ -107,9 +113,11 @@
         <script src="js/leaflet.photon.js"></script>
         <script src="js/tailDT.js"></script>
 
+        <script src="https://cdn.jsdelivr.net/npm/patternomaly@1.3.2/dist/patternomaly.js"></script>
+
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="js/nouislider.min.js"></script>
-<script src="js/wNumb.js"></script>
+        <script src="js/nouislider.min.js"></script>
+        <script src="js/wNumb.js"></script>
 
         <!-- Datos de indicadores -->
         <script src="data/indicadores.js"></script>
@@ -145,11 +153,10 @@
 
             reportContent.innerHTML = `
                 <div style="background: #e8f4fd; padding: 10px; border-radius: 4px; border-left: 4px solid #3498db; margin-bottom: 15px;">
-                    <p style="margin: 0; font-size: 14px;"><b>${metaGrupo.grupo_nom}</b></p>
+                    <p style="margin: 0; font-size: 14px;"><b>${labelVar}</b></p>
                     <p style="margin: 2px 0 0 0; font-size: 13px; color: #2c3e50;">${descVar}</p>
                 </div>
-                <p style="margin: 0 0 10px 0; font-size: 13px; color: #6f7c7d; font-style: italic;">Valores encontrados para indicador:</p>
-                <p style="margin: 0; font-size: 14px; color: #000000;"><b>${labelVar}</b></p>
+                <p style="margin: 0 0 5px 0; font-size: 13px; color: #6f7c7d; font-style: italic;">Valores encontrados para indicador:</p>
                 <table style="width: 100%; font-size: 13px; border-collapse: collapse; margin-top: 5px;">
                     <tr style="border-bottom: 1px solid #eee;"><td style="padding: 5px 0;">Río Grande:</td><td style="text-align: right;"><b>${(dataFinal.rio_gde * 100).toFixed(2)}%</b></td></tr>
                     <tr style="border-bottom: 1px solid #eee;"><td style="padding: 5px 0;">Tolhuin:</td><td style="text-align: right;"><b>${(dataFinal.tolhuin * 100).toFixed(2)}%</b></td></tr>
@@ -500,6 +507,12 @@
                         } 
                         else if (meta.tipo === "Categorizado") {
                             generarGraficoCategorizado(nombreLoc, codGrupo, nombreClave);
+                        }
+                        else if (meta.tipo === "Agrupacion") {
+                            generarGraficoAgrupado(nombreLoc, codGrupo, nombreClave);
+                        }
+                        else if (meta.tipo === "Tasa") {
+                            generarGraficoTasas(nombreLoc, codGrupo, nombreClave);
                         }
                         else {
                             // Manejo para otros tipos que aún no tienen lógica de gráfico
@@ -1245,6 +1258,221 @@
                     }
                 });
             }
+
+
+            const PALETA_MAESTRA = {
+                1: "#e74c3c", // Rojo (Inseguridad Alimentaria / Informalidad)
+                2: "#f1c40f", // Amarillo (Línea de Pobreza / Precariedad)
+                3: "#3498db", // Azul (NBI / Inestabilidad)
+                0: "#6e6e6e"  // Verde (Sin vulnerabilidad / Formal)
+            };
+            
+            function patronDiagonales(listaIds, grosorBase = 30) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // Obtenemos los colores reales de la paleta usando los IDs
+                const colores = listaIds.map(id => PALETA_MAESTRA[id] || '#ccc');
+                const n = colores.length;
+
+                // Ajustamos el tamaño del canvas para que la repetición sea fluida
+                // Multiplicamos por n para que cada franja tenga espacio suficiente
+                canvas.width = grosorBase;
+                canvas.height = grosorBase;
+
+                // Dibujamos franjas diagonales
+                // Para que sean N franjas iguales, desplazamos el dibujo
+                for (let i = 0; i < n; i++) {
+                    ctx.fillStyle = colores[i];
+                    
+                    // Dibujamos cada franja como un polígono (trapecio) diagonal
+                    ctx.beginPath();
+                    const paso = grosorBase / n;
+                    const inicio = i * paso;
+                    const fin = (i + 1) * paso;
+
+                    // Definimos la geometría de la franja diagonal
+                    ctx.moveTo(inicio, 0);
+                    ctx.lineTo(fin, 0);
+                    ctx.lineTo(0, fin);
+                    ctx.lineTo(0, inicio);
+                    ctx.fill();
+
+                    // Dibujamos la contraparte en la esquina opuesta para el "seamless repeat"
+                    ctx.moveTo(inicio, grosorBase);
+                    ctx.lineTo(fin, grosorBase);
+                    ctx.lineTo(grosorBase, fin);
+                    ctx.lineTo(grosorBase, inicio);
+                    ctx.fill();
+                }
+
+                return ctx.createPattern(canvas, 'repeat');
+            }
+
+            function calcularMaximoEje(valores) {
+                // Obtenemos el valor más alto del array de datos (ya en formato 0-100)
+                const maxReal = Math.max(...valores);    
+                // Si el máximo es 0, devolvemos 10 como base
+                if (maxReal <= 0) return 10;   
+                // Redondeamos al siguiente múltiplo de 10
+                return Math.ceil((maxReal + 5) / 5) * 5;
+            }
+
+            function generarGraficoAgrupado(nombreLoc, codGrupo, nombreClave) {
+                const ctx = document.getElementById('vulnerabilidadChart').getContext('2d');
+                const chartHeader = document.getElementById('chart-header');
+                const meta = indicadores_ref.find(g => g.cod_grupo === codGrupo);
+                
+                chartHeader.innerHTML = `<h4 style="margin: 0; font-size: 14px; text-align: center;">${nombreLoc}: ${meta.grupo_nom}</h4>`;
+
+                const labels = [];
+                const datosValores = [];
+                const backgroundColors = [];
+                
+                // 1. Unificamos la recolección de datos y colores en un solo ciclo
+                Object.keys(meta.variables).forEach(key => {
+                    const vInfo = meta.variables[key];
+                    
+                    // Añadimos la etiqueta (una sola vez)
+                    labels.push(vInfo.label);
+                    
+                    // Calculamos el valor porcentual
+                    const valor = (datos_localidad[codGrupo][key][nombreClave] * 100);
+                    datosValores.push(valor.toFixed(2));
+
+                    const componentes = vInfo.incluye_clases || [];
+                    let finalColor;
+
+                    if (componentes.length === 1) {
+                        // Color sólido para indicadores simples
+                        finalColor = PALETA_MAESTRA[componentes[0]];
+                    } else if (componentes.length > 1) {
+                        // Patrón de franjas diagonales para indicadores combinados
+                        finalColor = patronDiagonales(componentes, 30);
+                    } else {
+                        finalColor = '#cccccc'; // Color de respaldo
+                    }
+
+                    backgroundColors.push(finalColor);
+                });
+
+                // 3. Calculamos el máximo del eje dinámico solo para esta localidad
+                const limiteY = calcularMaximoEje(datosValores);
+
+                if (miGrafico) miGrafico.destroy();
+
+                miGrafico = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{ 
+                            data: datosValores, 
+                            backgroundColor: backgroundColors, 
+                            borderWidth: 1,
+                            borderColor: '#333'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                max: limiteY, 
+                                ticks: { callback: v => v + "%" } 
+                            },
+                            x: { 
+                                ticks: { 
+                                    font: { size: 9 }, 
+                                    autoSkip: false,
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                } 
+                            }
+                        },
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => `Población: ${context.raw}%`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function generarGraficoTasas(nombreLoc, codGrupo, nombreClave) {
+                const ctx = document.getElementById('vulnerabilidadChart').getContext('2d');
+                const chartHeader = document.getElementById('chart-header');
+                const meta = indicadores_ref.find(g => g.cod_grupo === codGrupo);
+                
+                chartHeader.innerHTML = `<h4 style="margin: 0; font-size: 14px; text-align: center;">${nombreLoc}: ${meta.grupo_nom}</h4>`;
+
+                const labels = [];
+                const datosValores = [];
+                const colores = [];
+
+                Object.keys(meta.variables).forEach(key => {
+                    const vInfo = meta.variables[key];
+                    labels.push(vInfo.label); // Ejemplo: "100,00"
+                    
+                    const porcentajeHogares = (datos_localidad[codGrupo][key][nombreClave] * 100);
+                    datosValores.push(porcentajeHogares.toFixed(2));
+
+                    // Color dinámico: más oscuro cuanta más dependencia
+                    const intensidad = Math.min(255, parseInt(key) * 30);
+                    colores.push(`rgb(52, 152, ${219 - (key * 15)})`); 
+                });
+
+                const limiteY = calcularMaximoEje(datosValores);
+
+                if (miGrafico) miGrafico.destroy();
+
+                miGrafico = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '% de Hogares',
+                            data: datosValores,
+                            backgroundColor: '#9b59b6', // Color distintivo para tasas
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { 
+                                title: { display: true, text: '% de Hogares' },
+                                beginAtZero: true, 
+                                max: limiteY 
+                            },
+                            x: { title: { display: true, text: 'Valor de la Tasa (Dep/100 Activos)' } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            function limpiarGrafico() {
+                if (miGrafico) {
+                    miGrafico.destroy();
+                    miGrafico = null;
+                }
+                // Restauramos el mensaje de ayuda inicial
+                const chartHeader = document.getElementById('chart-header');
+                const canvasElement = document.getElementById('vulnerabilidadChart');
+                
+                chartHeader.innerHTML = `
+                    <p style="font-size: 12px; color: #95a5a6; text-align: center; margin: 10px 0;">
+                        Haga clic en una localidad para ver el gráfico.
+                    </p>`;
+                chartHeader.style.display = 'block';
+                canvasElement.style.display = 'none';
+            }
+
         </script>
         <script>
             // Aseguramos que el código corra solo cuando el HTML esté cargado
@@ -1260,7 +1488,7 @@
                 const selectVar = document.getElementById('variableSelect');
 
                 // 2. Llenar el primer selector
-                selectInd.innerHTML = '<option value="">Elija un indicador...</option>';
+                selectInd.innerHTML = '<option value="">Elija una variable...</option>';
                 indicadores_ref.forEach(grupo => {
                     let opt = document.createElement('option');
                     opt.value = grupo.cod_grupo;
@@ -1271,22 +1499,39 @@
                 // 3. Evento Indicador (Padre)
                 selectInd.addEventListener('change', function () {
                     const codGrupo = this.value;
-                    selectVar.innerHTML = '<option value="">Seleccione una variable...</option>';
+                    const infoContainer = document.getElementById('info-variable-container');
+                    const infoDesc = document.getElementById('info-desc');
+
+                    //Vaciar información previa
+                    limpiarGrafico();
+                    selectVar.innerHTML = '<option value="">Seleccione un indicador...</option>';
+
                     document.getElementById('report-data').innerHTML = '<p style="color: #7f8c8d; font-style: italic;">Ahora seleccione un indicador específico.</p>';
 
                     if (!codGrupo) {
                         selectVar.disabled = true;
+                        infoContainer.style.display = 'none';
                         document.getElementById('report-data').innerHTML = '<p style="color: #7f8c8d;">Seleccione una variable para analizar.</p>';
                         return;
                     }
 
                     const grupoData = indicadores_ref.find(g => g.cod_grupo === codGrupo);
-                    Object.keys(grupoData.variables).forEach(key => {
-                        let opt = document.createElement('option');
-                        opt.value = key;
-                        opt.innerHTML = grupoData.variables[key].label;
-                        selectVar.appendChild(opt);
-                    });
+
+                    if (grupoData) {
+                        if (grupoData.desc_grupo) {
+                            infoDesc.innerText = grupoData.desc_grupo;
+                            infoContainer.style.display = 'block';
+                        }
+                        Object.keys(grupoData.variables).forEach(key => {
+                            let opt = document.createElement('option');
+                            opt.value = key;
+                            opt.innerHTML = grupoData.variables[key].label;
+                            selectVar.appendChild(opt);
+                        });
+                    } else {
+                        infoContainer.style.display = 'none';
+                    }
+
                     selectVar.disabled = false;
                 });
 
@@ -1353,9 +1598,6 @@
                                 <span style="white-space: nowrap; font-size: 12px; line-height: ${altoFila}px;">${textoRango}</span>
                             </div>`;
                     }
-
-                    html += '<hr style="margin: 10px 0;">';
-                    html += '<div style="font-size: 11px; color: #666; text-align: center;">Tamaño proporcional a la población</div>';
 
                     legendDiv.innerHTML = html;
                     legendDiv.style.display = 'block';
