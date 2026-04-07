@@ -57,15 +57,15 @@
     <body>
         <div id="side-panel" style="position: absolute; top: 0; left: 0; width: 350px; height: 100%; z-index: 2000; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.2); display: flex; flex-direction: column; font-family: sans-serif;">
             
-            <div style="padding: 20px 15px 5px 15px; background: #2c3e50; color: white;">
-                <h2 style="margin: 0; font-size: 18px;">Indicadores de Vulnerabilidad</h2>
+            <div style="padding: 20px 15px 2px 15px; background: #2c3e50; color: white;">
+                <h2 style="margin: 0; font-size: 18px;">Características de los hogares<br> y sus miembros</h2>
                 <h3 style="margin-top: 10px; font-size: 14px;color: #8c9699;">Localidades de Tierra del Fuego</h3>
             </div>
             
-            <div id="selector-container" style="padding: 20px; border-bottom: 1px solid #eee; background: #f8f9fa;">
-                <label for="indicadorSelect"><b>1. Variable:</b></label><br>
+            <div id="selector-container" style="padding: 15px 20px 12px 20px; border-bottom: 1px solid #eee; background: #f8f9fa;">
+                <label for="indicadorSelect"><b>1. Indicador Sociodemográfico:</b></label><br>
                 <select id="indicadorSelect" style="width: 100%; margin-top: 5px; margin-bottom: 15px; padding: 5px;">
-                    <option value="">Elija una variable...</option>
+                    <option value="">Seleccione un indicador...</option>
                 </select>
                 
                 <div id="info-variable-container" style="padding: 0 15px 15px 15px; display: none;">
@@ -74,9 +74,9 @@
                     </div>
                 </div>
 
-                <label for="variableSelect"><b>2. Indicador:</b></label><br>
-                <select id="variableSelect" style="width: 100%; margin-top: 5px; padding: 5px;" disabled>
-                    <option value="">Seleccione variable primero...</option>
+                <label for="variableSelect"><b>2. Indicador Específico:</b></label><br>
+                <select id="variableSelect" style="width: 100%; margin-top: 5px; padding: 3px;" disabled>
+                    <option value="">Seleccione indicador primero...</option>
                 </select>
             </div>
 
@@ -156,7 +156,6 @@
                     <p style="margin: 0; font-size: 14px;"><b>${labelVar}</b></p>
                     <p style="margin: 2px 0 0 0; font-size: 13px; color: #2c3e50;">${descVar}</p>
                 </div>
-                <p style="margin: 0 0 5px 0; font-size: 13px; color: #6f7c7d; font-style: italic;">Valores encontrados para indicador:</p>
                 <table style="width: 100%; font-size: 13px; border-collapse: collapse; margin-top: 5px;">
                     <tr style="border-bottom: 1px solid #eee;"><td style="padding: 5px 0;">Río Grande:</td><td style="text-align: right;"><b>${(dataFinal.rio_gde * 100).toFixed(2)}%</b></td></tr>
                     <tr style="border-bottom: 1px solid #eee;"><td style="padding: 5px 0;">Tolhuin:</td><td style="text-align: right;"><b>${(dataFinal.tolhuin * 100).toFixed(2)}%</b></td></tr>
@@ -181,14 +180,14 @@
         const RANGOS_CATEGORIAS = [0, 0, 0.05, 0.10, 0.20, 0.45, 0.70, 0.90];
 
         const COLORES_CATEGORIAS = [
-            '#ffffff', // 0% (Blanco)
-            '#fed976', // 0% - 5% (Amarillo claro)
-            '#feb24c', // 5% - 10%
-            '#fd8d3c', // 10% - 20%
-            '#fc4e2a', // 20% - 45%
-            '#e31a1c', // 45% - 70%
-            '#bd0026', // 70% - 90%
-            '#800026'  // 90% +
+            '#f0f9e8', // 0% 
+            '#d1edcf', // 0% - 5%
+            '#b1e1bd', // 5% - 10%
+            '#8dd3c2', // 10% - 20%
+            '#6bc0c6', // 20% - 45%
+            '#4ba8c9', // 45% - 70%
+            '#2a89bd', // 70% - 90%
+            '#0868ac'  // 90% +
         ];
                 function getColor(v) {
             if (!v || v <= 0) return '#ffffff'; 
@@ -1488,7 +1487,7 @@
                 const selectVar = document.getElementById('variableSelect');
 
                 // 2. Llenar el primer selector
-                selectInd.innerHTML = '<option value="">Elija una variable...</option>';
+                selectInd.innerHTML = '<option value="">Seleccione un indicador...</option>';
                 indicadores_ref.forEach(grupo => {
                     let opt = document.createElement('option');
                     opt.value = grupo.cod_grupo;
@@ -1504,7 +1503,7 @@
 
                     //Vaciar información previa
                     limpiarGrafico();
-                    selectVar.innerHTML = '<option value="">Seleccione un indicador...</option>';
+                    selectVar.innerHTML = '<option value="">Seleccione un Indicador Específico...</option>';
 
                     document.getElementById('report-data').innerHTML = '<p style="color: #7f8c8d; font-style: italic;">Ahora seleccione un indicador específico.</p>';
 

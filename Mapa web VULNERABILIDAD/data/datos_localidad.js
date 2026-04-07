@@ -45,13 +45,11 @@ var datos_localidad = {
     "5": {"rio_gde": 0.169206277, "tolhuin": 0.073206442, "ushuaia": 0.28403505}
   },
   "204": {
-    "1": {"rio_gde": 0.291790653, "tolhuin": 0.218942189, "ushuaia": 0.355993773},
-    "2": {"rio_gde": 0.288990023, "tolhuin": 0.300123001, "ushuaia": 0.268638644},
-    "3": {"rio_gde": 0.233677577, "tolhuin": 0.185731857, "ushuaia": 0.185781007},
-    "4": {"rio_gde": 0.069315596, "tolhuin": 0.0799508, "ushuaia": 0.058813354},
-    "5": {"rio_gde": 0.020654647, "tolhuin": 0.077490775, "ushuaia": 0.017989967},
-    "6": {"rio_gde": 0.057762997, "tolhuin": 0.067650677, "ushuaia": 0.062272963},
-    "7": {"rio_gde": 0.037808507, "tolhuin": 0.070110701, "ushuaia": 0.050510292}
+    "0": {"rio_gde": 0.345200556, "tolhuin": 0.359460946, "ushuaia": 0.405238548},
+    "1": {"rio_gde": 0.145119181, "tolhuin": 0.091859186, "ushuaia": 0.088368525},
+    "2": {"rio_gde": 0.198487777, "tolhuin": 0.236248625, "ushuaia": 0.160005845},
+    "3": {"rio_gde": 0.231919439, "tolhuin": 0.161716172, "ushuaia": 0.260721853},
+    "4": {"rio_gde": 0.079273048, "tolhuin": 0.150715072, "ushuaia": 0.085665230}
   },
   "205": {
     "0": {"rio_gde": 0.354825871, "tolhuin": 0.198653199, "ushuaia": 0.269110416},
@@ -68,35 +66,47 @@ var datos_localidad = {
     "2": {"rio_gde": 0.0839801, "tolhuin": 0.124579125, "ushuaia": 0.15869468},
     "3": {"rio_gde": 0.00119403, "tolhuin": 0.011784512, "ushuaia": 0.008717032}
   },
-  "301": {
+  // "301": {
+  //   "0": {"rio_gde": 0.907591378, "tolhuin": 0.915789474, "ushuaia": 0.948434622},
+  //   "1": {"rio_gde": 0.001124649, "tolhuin": 0, "ushuaia": 0},
+  //   "2": {"rio_gde": 0, "tolhuin": 0.011842105, "ushuaia": 0},
+  //   "3": {"rio_gde": 0.014245548, "tolhuin": 0, "ushuaia": 0},
+  //   "4": {"rio_gde": 0.023242737, "tolhuin": 0.011842105, "ushuaia": 0.010128913},
+  //   "5": {"rio_gde": 0.003561387, "tolhuin": 0, "ushuaia": 0},
+  //   "6": {"rio_gde": 0.039550141, "tolhuin": 0.060526316, "ushuaia": 0.027808471},
+  //   "7": {"rio_gde": 0.010684161, "tolhuin": 0, "ushuaia": 0.013627993}
+  // },
+  // "302": {
+  //   "0": {"rio_gde": 0.48143982, "tolhuin": 0.519736842, "ushuaia": 0.571744336},
+  //   "1": {"rio_gde": 0.003749531, "tolhuin": 0, "ushuaia": 0},
+  //   "2": {"rio_gde": 0.004874391, "tolhuin": 0, "ushuaia": 0},
+  //   "3": {"rio_gde": 0.007311586, "tolhuin": 0, "ushuaia": 0},
+  //   "4": {"rio_gde": 0.04311961, "tolhuin": 0.025, "ushuaia": 0.013630503},
+  //   "5": {"rio_gde": 0.081927259, "tolhuin": 0.063157895, "ushuaia": 0.080309449},
+  //   "6": {"rio_gde": 0.004686914, "tolhuin": 0.011842105, "ushuaia": 0},
+  //   "7": {"rio_gde": 0.001124859, "tolhuin": 0, "ushuaia": 0},
+  //   "8": {"rio_gde": 0.131421072, "tolhuin": 0.047368421, "ushuaia": 0.177196537},
+  //   "9": {"rio_gde": 0.003749531, "tolhuin": 0, "ushuaia": 0},
+  //   "10": {"rio_gde": 0.030183727, "tolhuin": 0.025, "ushuaia": 0.013998895},
+  //   "11": {"rio_gde": 0.001124859, "tolhuin": 0, "ushuaia": 0},
+  //   "12": {"rio_gde": 0.001124859, "tolhuin": 0, "ushuaia": 0},
+  //   "13": {"rio_gde": 0.122609674, "tolhuin": 0.240789474, "ushuaia": 0.104623319},
+  //   "14": {"rio_gde": 0.012935883, "tolhuin": 0.011842105, "ushuaia": 0.010314975},
+  //   "15": {"rio_gde": 0.053993251, "tolhuin": 0.043421053, "ushuaia": 0.020998342},
+  //   "16": {"rio_gde": 0.007499063, "tolhuin": 0.011842105, "ushuaia": 0.007183643},
+  //   "17": {"rio_gde": 0.00599925, "tolhuin": 0, "ushuaia": 0},
+  //   "18": {"rio_gde": 0.001124859, "tolhuin": 0, "ushuaia": 0}
+  // },
+    "301": {
     "0": {"rio_gde": 0.907591378, "tolhuin": 0.915789474, "ushuaia": 0.948434622},
-    "1": {"rio_gde": 0.001124649, "tolhuin": 0, "ushuaia": 0},
-    "2": {"rio_gde": 0, "tolhuin": 0.011842105, "ushuaia": 0},
-    "3": {"rio_gde": 0.014245548, "tolhuin": 0, "ushuaia": 0},
-    "4": {"rio_gde": 0.023242737, "tolhuin": 0.011842105, "ushuaia": 0.010128913},
-    "5": {"rio_gde": 0.003561387, "tolhuin": 0, "ushuaia": 0},
-    "6": {"rio_gde": 0.039550141, "tolhuin": 0.060526316, "ushuaia": 0.027808471},
-    "7": {"rio_gde": 0.010684161, "tolhuin": 0, "ushuaia": 0.013627993}
+    "1": {"rio_gde": 0.042174321, "tolhuin": 0.023684211, "ushuaia": 0.010128913},
+    "2": {"rio_gde": 0.039550141, "tolhuin": 0.060526316, "ushuaia": 0.027808471},
+    "3": {"rio_gde": 0.010684161, "tolhuin": 0,           "ushuaia": 0.013627993}
   },
   "302": {
     "0": {"rio_gde": 0.48143982, "tolhuin": 0.519736842, "ushuaia": 0.571744336},
-    "1": {"rio_gde": 0.003749531, "tolhuin": 0, "ushuaia": 0},
-    "2": {"rio_gde": 0.004874391, "tolhuin": 0, "ushuaia": 0},
-    "3": {"rio_gde": 0.007311586, "tolhuin": 0, "ushuaia": 0},
-    "4": {"rio_gde": 0.04311961, "tolhuin": 0.025, "ushuaia": 0.013630503},
-    "5": {"rio_gde": 0.081927259, "tolhuin": 0.063157895, "ushuaia": 0.080309449},
-    "6": {"rio_gde": 0.004686914, "tolhuin": 0.011842105, "ushuaia": 0},
-    "7": {"rio_gde": 0.001124859, "tolhuin": 0, "ushuaia": 0},
-    "8": {"rio_gde": 0.131421072, "tolhuin": 0.047368421, "ushuaia": 0.177196537},
-    "9": {"rio_gde": 0.003749531, "tolhuin": 0, "ushuaia": 0},
-    "10": {"rio_gde": 0.030183727, "tolhuin": 0.025, "ushuaia": 0.013998895},
-    "11": {"rio_gde": 0.001124859, "tolhuin": 0, "ushuaia": 0},
-    "12": {"rio_gde": 0.001124859, "tolhuin": 0, "ushuaia": 0},
-    "13": {"rio_gde": 0.122609674, "tolhuin": 0.240789474, "ushuaia": 0.104623319},
-    "14": {"rio_gde": 0.012935883, "tolhuin": 0.011842105, "ushuaia": 0.010314975},
-    "15": {"rio_gde": 0.053993251, "tolhuin": 0.043421053, "ushuaia": 0.020998342},
-    "16": {"rio_gde": 0.007499063, "tolhuin": 0.011842105, "ushuaia": 0.007183643},
-    "17": {"rio_gde": 0.00599925, "tolhuin": 0, "ushuaia": 0},
-    "18": {"rio_gde": 0.001124859, "tolhuin": 0, "ushuaia": 0}
+    "1": {"rio_gde": 0.31439820, "tolhuin": 0.172368421, "ushuaia": 0.285135384},
+    "2": {"rio_gde": 0.12260967, "tolhuin": 0.240789474, "ushuaia": 0.104623319},
+    "3": {"rio_gde": 0.08155231, "tolhuin": 0.067105263, "ushuaia": 0.038496961}
   }
 }
