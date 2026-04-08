@@ -280,6 +280,7 @@
         const urlArgenmapGris = 'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG:3857@png/{z}/{x}/{y}.png';
         const urlArgenmapNormal = 'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG:3857@png/{z}/{x}/{y}.png';
         const urlOSM = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+        const urlEsriSat = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
         // 2. Creamos el panel para el mapa base
         map.createPane('pane_BaseMap_0');
@@ -294,6 +295,31 @@
             maxZoom: 20,
             tms: true 
         });
+
+        // var layer_ArgenmapColor = L.tileLayer(urlArgenmapNormal, {
+        //     pane: 'pane_BaseMap_0',
+        //     opacity: 1.0,
+        //     attribution: 'IGN Argentina',
+        //     minZoom: 1,
+        //     maxZoom: 20,
+        //     tms: true 
+        // });
+        // var layer_OpenStretMap = L.tileLayer(urlOSM, {
+        //     pane: 'pane_BaseMap_0',
+        //     opacity: 1.0,
+        //     attribution: 'OpenStreetMap',
+        //     minZoom: 1,
+        //     maxZoom: 20,
+        //     tms: true 
+        // });
+        // var layer_EsriSatellite = L.tileLayer(urlEsriSat, {
+        //     pane: 'pane_BaseMap_0',
+        //     opacity: 1.0,
+        //     attribution: 'Esri Satellite',
+        //     minZoom: 1,
+        //     maxZoom: 20,
+        //     tms: false 
+        // });
 
         // 4. Lógica de Fallback (Respaldo)
         let intentos = 0;
@@ -432,8 +458,8 @@
                 opacity: 1,
                 color: 'rgba(0,0,0,1.0)',
                 dashArray: '',
-                lineCap: 'butt',
-                lineJoin: 'miter',
+                lineCap: 'round',
+                lineJoin: 'round',
                 weight: 3.0, 
                 fill: true,
                 fillOpacity: 0,
@@ -581,21 +607,21 @@
         bounds_group.addLayer(layer_localidades_TdFuego_3);
         map.addLayer(layer_localidades_TdFuego_3);
         var overlaysTree = [
-            {label: '<img src="legend/localidades_TdFuego_3.png" /> localidades_TdFuego', layer: layer_localidades_TdFuego_3},
-            {label: '<img src="legend/provincia_TdFuego_2.png" /> provincia_TdFuego', layer: layer_provincia_TdFuego_2},
-            {label: '<img src="legend/sudamerica_1.png" /> sudamerica', layer: layer_sudamerica_1},
+            //{label: '<img src="legend/localidades_TdFuego_3.png" /> localidades_TdFuego', layer: layer_localidades_TdFuego_3},
+            //{label: '<img src="legend/provincia_TdFuego_2.png" /> provincia_TdFuego', layer: layer_provincia_TdFuego_2},
+            //{label: '<img src="legend/sudamerica_1.png" /> sudamerica', layer: layer_sudamerica_1},
             {label: "Mapa Base", layer: layer_BaseMap_0, radioGroup: 'bm' },]
             //Control de capas OPENLAYERS
-            // var lay = L.control.layers.tree(null, overlaysTree,{
-        //     //namedToggle: true,
+        var lay = L.control.layers.tree(null, overlaysTree,{
+                 //namedToggle: true,
         //     //selectorBack: false,
         //     //closedSymbol: '&#8862; &#x1f5c0;',
         //     //openedSymbol: '&#8863; &#x1f5c1;',
         //     //collapseAll: 'Collapse all',
         //     //expandAll: 'Expand all',
         //     collapsed: true,
-        // });
-        // lay.addTo(map);
+         });
+        lay.addTo(map);
         setBounds();
         var mapDiv = document.getElementById('map');
         var row = document.createElement('div');
