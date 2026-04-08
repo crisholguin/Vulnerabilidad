@@ -55,7 +55,7 @@
         <title></title>
     </head>
     <body>
-        <div id="side-panel" style="position: absolute; top: 0; left: 0; width: 350px; height: 100%; z-index: 2000; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.2); display: flex; flex-direction: column; font-family: sans-serif;">
+        <div id="side-panel" style="position: absolute; top: 0; left: 0; width: 355px; height: 100%; z-index: 2000; background: white; box-shadow: 2px 0 5px rgba(0,0,0,0.2); display: flex; flex-direction: column; font-family: sans-serif;">
             
             <div style="padding: 20px 15px 2px 15px; background: #2c3e50; color: white;">
                 <h2 style="margin: 0; font-size: 18px;">Características de los hogares<br> y sus miembros</h2>
@@ -86,7 +86,7 @@
                 </div>
             </div>
             
-            <div id="chart-container" style="padding: 15px; background: #f4f4f4; border-top: 1px solid #ddd; height: 350px; display: flex; flex-direction: column;">
+            <div id="chart-container" style="padding: 15px; background: #f4f4f4; border-top: 1px solid #ddd; height: 340px; display: flex; flex-direction: column;">
                 <div id="chart-header" style="flex: 0 1 auto;">
                     <p style="font-size: 12px; color: #95a5a6; text-align: center; margin: 10px 0;">
                         Haga clic en una localidad para ver el gráfico.
@@ -511,9 +511,10 @@
                             generarGraficoAgrupado(nombreLoc, codGrupo, nombreClave);
                         }
                         else if (meta.tipo === "Tasa") {
-                            generarGraficoTasas(nombreLoc, codGrupo, nombreClave);
+                            const tituloX = `Número de ${meta.unidad || ""}`;
+                            generarGraficoCategorizado(nombreLoc, codGrupo, nombreClave, tituloX);
                         }
-                        else {
+                        else {tituloX
                             // Manejo para otros tipos que aún no tienen lógica de gráfico
                             if (miGrafico) miGrafico.destroy();
                             document.getElementById('vulnerabilidadChart').style.display = 'none';
@@ -1194,7 +1195,7 @@
                 });
             }
             
-            function generarGraficoCategorizado(nombreLoc, codGrupo, nombreClave) {
+            function generarGraficoCategorizado(nombreLoc, codGrupo, nombreClave, tituloX = "") {
                 const ctx = document.getElementById('vulnerabilidadChart').getContext('2d');
                 const chartHeader = document.getElementById('chart-header');
                 const canvasElement = document.getElementById('vulnerabilidadChart');
@@ -1207,7 +1208,11 @@
                 const datosValores = [];
                 
                 Object.keys(meta.variables).forEach(key => {
-                    labels.push(meta.variables[key].label);
+                    const vInfo = meta.variables[key];
+                    const labelEjeX = vInfo.xtick ? vInfo.xtick : vInfo.label;
+                    labels.push(labelEjeX);
+
+                    //labels.push(meta.variables[key].label);
                     // Convertimos la proporción a porcentaje (0-100)
                     const valorPerc = (datos_localidad[codGrupo][key][nombreClave] * 100).toFixed(2);
                     datosValores.push(valorPerc);
@@ -1220,6 +1225,8 @@
                 if (miGrafico) {
                     miGrafico.destroy();
                 }
+
+                const limiteY = calcularMaximoEje(datosValores);
 
                 // 4. Crear Gráfico de Barras Verticales
                 miGrafico = new Chart(ctx, {
@@ -1240,9 +1247,21 @@
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                max: 100, // Forzamos el eje del 0 al 100%
+                                max: limiteY,
                                 ticks: {
                                     callback: function(value) { return value + "%"; }
+                                }
+                            },
+                            x:{
+                                title:{
+                                    display: tituloX !== "",
+                                    text: tituloX,
+                                    font: { size: 11, weight: 'bold' }                                    
+                                },
+                                ticks: {
+                                    autoSkip: false,
+                                    maxRotation: 45,
+                                    minRotation: 30
                                 }
                             }
                         },
@@ -1254,8 +1273,9 @@
                                 }
                             }
                         }
-                    }
-                });
+                    }  
+                }              
+            );
             }
 
 

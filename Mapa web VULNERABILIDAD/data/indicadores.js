@@ -129,12 +129,13 @@ var indicadores_ref = [
     "cod_grupo": "302",
     "grupo_nom": "Tasa de dependencia infantil",
     "desc_grupo": "Indica la relación entre la cantidad de niños y las personas ocupadas del hogar.",
-    "tipo": "Categorizado",
+    "tipo": "Tasa",
+    "unidad": "niños/as por cada ocupado/a",
     "variables": {
-      "0": { "label": "Ningún niño/a por ocupado/a", "desc": "Cantidad de niños menores de 15 años por cada 100 personas en edad laboral." },
-      "1": { "label": "Menos de 1 niño/a por ocupado/a", "desc": "Cantidad de niños menores de 15 años por cada 100 personas en edad laboral." },
-      "2": { "label": "1 niño/a por ocupado/a", "desc": "Cantidad de niños menores de 15 años por cada 100 personas en edad laboral." },
-      "3": { "label": "Más de 1 niño/a por ocupado/a", "desc": "Cantidad de niños menores de 15 años por cada 100 personas en edad laboral." },
+      "0": { "label": "Ningún niño/a por ocupado/a.", "xtick": "0", "desc": "Cantidad de niños menores de 15 años por cada ocupado/a." },
+      "1": { "label": "Menos de 1 niño/a por ocupado/a.", "xtick": "0 - 1", "desc": "Cantidad de niños menores de 15 años por cada ocupado/a." },
+      "2": { "label": "1 niño/a por ocupado/a.", "xtick": "1", "desc": "Cantidad de niños menores de 15 años por cada ocupado/a." },
+      "3": { "label": "Más de 1 niño/a por ocupado/a.", "xtick": "Más de 1", "desc": "Cantidad de niños menores de 15 años por cada ocupado/a." },
     }
   },
   // {
@@ -157,12 +158,13 @@ var indicadores_ref = [
     "cod_grupo": "301",
     "grupo_nom": "Tasa de dependencia adultos mayores",
     "desc_grupo": "Indica la relación entre la cantidad de adultos mayores y las personas ocupadas del hogar.",
-    "tipo": "Categorizado",
+    "tipo": "Tasa",
+    "unidad": "adultos mayores por cada ocupado/a",
     "variables": {
-      "0": { "label": "Ningún adulto mayor por ocupado/a", "desc": "Cantidad de adultos mayores de 64 años por cada 100 personas en edad laboral."},
-      "1": { "label": "Menos de 1 adulto mayor por ocupado/a", "desc": "Cantidad de adultos mayores de 64 años por cada 100 personas en edad laboral."},
-      "2": { "label": "1 adulto mayor por ocupado/a", "desc": "Cantidad de adultos mayores de 64 años por cada 100 personas en edad laboral."},
-      "3": { "label": "Más de 1 adulto mayor por ocupado/a", "desc": "Cantidad de adultos mayores de 64 años por cada 100 personas en edad laboral."}
+      "0": {"xtick": "0", "label": "Ningún adulto mayor por ocupado/a.", "desc": "Cantidad de adultos mayores de 64 años por cada ocupado/a."},
+      "1": {"xtick": "0 - 1", "label": "Menos de 1 adulto mayor por ocupado/a.", "desc": "Cantidad de adultos mayores de 64 años por cada ocupado/a."},
+      "2": {"xtick": "1", "label": "1 adulto mayor por ocupado/a", "desc": "Cantidad de adultos mayores de 64 años por cada ocupado/a."},
+      "3": {"xtick": "Más de 1", "label": "Más de 1 adulto mayor por ocupado/a.", "desc": "Cantidad de adultos mayores de 64 años por cada ocupado/a."}
     }
   },
   // {
@@ -196,7 +198,7 @@ var indicadores_ref = [
   {
     "cod_grupo": "206",
     "grupo_nom": "Indice de Riesgo Infantil",
-    "desc_grupo": "Medida resumen que expresa las condiciones de vulnerabilidad a la que están expuestos los niños y niñas. El índice tiene una rango de 0-5 donde 5 dan cuenta de la presencia del conjunto de carencias en el hogar: hacinamiento, calidad de materiales insuficientes, servicios sanitarios insatisfactorios, niños/as sin cobertura médica, asistencia escolar y presencia de adultos sin educación formal",
+    "desc_grupo": "Medida resumen que expresa las condiciones de vulnerabilidad a la que están expuestos los niños y niñas. Considera la presencia de las siguientes condiciones: Hacinamiento, Calidad de materiales insuficientes, Servicios sanitarios insatisfactorios, Niños/as sin cobertura médica, Asistencia escolar y Presencia de adultos sin educación formal",
     "tipo": "Categorizado",
     "variables": {
       "0": { "label": "Sin Riesgo", "desc": "No presenta factores de riesgo infantil." },
